@@ -1,0 +1,70 @@
+<canvas id="test1"></canvas>
+<script type="text/javascript">
+    function load(url) {
+        var generateList = function(length, max, seed) {
+            var ret = [];
+            var i = 0;
+            while (i < length) {
+                seed = (2097151*seed + 13739) % 4294967296;
+                ret.push(parseInt(seed / 4294967296 * max));
+                i++;
+            }
+
+            return ret;
+        }
+
+        var block = 32;
+
+        var ctx = document.getElementById('test1');
+        if (ctx.getContext) {
+
+            ctx = ctx.getContext('2d');
+
+            //Loading of the home test image - img1
+            var img1 = new Image();
+
+            //drawing of the test image - img1
+            img1.onload = function () {
+                ctx.canvas.width = img1.width;
+                ctx.canvas.height = img1.height;
+                ctx.drawImage(img1, 0, 0);
+
+                var w = parseInt(img1.width / block);
+                var h = parseInt(img1.height / block);
+
+                var linearToXY = function(idx) {
+                    var y = parseInt(idx / w);
+                    var x = idx - y * w;
+                    return [x, y];
+                }
+
+                var remapping = [];
+                for (var i = 0; i < w * h; i++) remapping[i] = i;
+
+                var mapping = generateList(w * h, w * h, 0xc0ffee);
+                for (var i in mapping) {
+                    var tmp = remapping[i];
+                    remapping[i] = remapping[mapping[i]];
+                    remapping[mapping[i]] = tmp;
+                }
+
+                for (var i in remapping) {
+                    var dxy = linearToXY(i);
+                    var dx = dxy[0] * block;
+                    var dy = dxy[1] * block;
+
+                    var xy = linearToXY(remapping[i]);
+                    var x = xy[0] * block;
+                    var y = xy[1] * block;
+
+                    ctx.drawImage(img1, dx, dy, block, block, x, y, block, block);
+                }
+
+            };
+
+            img1.src = url;
+        }
+    }
+
+    load("len2.png")
+</script>
